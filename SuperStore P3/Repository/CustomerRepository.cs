@@ -1,7 +1,6 @@
 ﻿using Data;
 using EcoPower_Logistics.Data;
 using Microsoft.AspNetCore.Mvc;
-//using Microsoft.EntityFrameworkCore;
 using Models;
 
 namespace EcoPower_Logistics.Repository
