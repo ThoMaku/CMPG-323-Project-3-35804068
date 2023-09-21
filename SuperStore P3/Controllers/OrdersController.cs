@@ -15,79 +15,69 @@ namespace Controllers
     [Authorize]
     public class OrdersController : Controller
     {
-        private readonly SuperStoreContext _context;
-        private readonly CustomerRepository _customerRepository;
+        private readonly IOrderRepository _orderRepository;
+        private readonly ICustomerRepository _customerRepository;
 
-        public OrdersController(CustomerRepository customerRepository, SuperStoreContext context)
+        public OrdersController(IOrderRepository orderRepository,ICustomerRepository customerRepository)
         {
+            _orderRepository = orderRepository;
             _customerRepository = customerRepository;
-            _context = context;
         }
 
         // GET: Orders
         public async Task<IActionResult> Index()
         {
-            var superStoreContext = _context.Orders.Include(o => o.Customer);
-            return View(await superStoreContext.ToListAsync());
+            ViewData["CustomerId"] = new SelectList(_customerRepository.GetAllCustomers(), "CustomerId", "CustomerName");
+            return View(_orderRepository.GetAllOrderrs().ToList());
         }
 
         // GET: Orders/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> Details(int id)
         {
-            if (id == null || _context.Orders == null)
+            if (id == null)
             {
                 return NotFound();
             }
-
-            var order = await _context.Orders
-                .Include(o => o.Customer)
-                .FirstOrDefaultAsync(m => m.OrderId == id);
+            var order = _orderRepository.GetOrderById(id);
             if (order == null)
             {
                 return NotFound();
             }
-
             return View(order);
+
         }
 
-        /*// GET: Orders/Create
-        public IActionResult Create(Order order)
+        // GET: Orders/Create
+        public IActionResult Create()
         {
-            var customer = _customerRepository.GetByID(order.CustomerId);
-            return RedirectToAction(nameof(Index));
+            ViewData["CustomerId"] = new SelectList(_customerRepository.GetAllCustomers(), "CustomerId", "CustomerName");
+            return View();
         }
 
         // POST: Orders/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        /*[HttpPost]
+        [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("OrderId,OrderDate,CustomerId,DeliveryAddress")] Order order)
         {
-            if (ModelState.IsValid)
-            {
-                _context.Add(order);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["CustomerId"] = new SelectList(_context.Customers, "CustomerId", "CustomerId", order.CustomerId);
-            return View(order);
-        }*/
+           _orderRepository.AddOrder(order);
+            return RedirectToAction("Index");
+        }
 
         // GET: Orders/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int id)
         {
-            if (id == null || _context.Orders == null)
+            if (id == null)
             {
                 return NotFound();
             }
-
-            var order = await _context.Orders.FindAsync(id);
+            var order = _orderRepository.GetOrderById(id);
             if (order == null)
             {
                 return NotFound();
             }
-            ViewData["CustomerId"] = new SelectList(_context.Customers, "CustomerId", "CustomerId", order.CustomerId);
+            ViewData["CustomerId"] = new SelectList(_customerRepository.GetAllCustomers(), "CustomerId", "CustomerName");
             return View(order);
         }
 
@@ -102,47 +92,36 @@ namespace Controllers
             {
                 return NotFound();
             }
-
-            if (ModelState.IsValid)
+            try
             {
-                try
-                {
-                    _context.Update(order);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!OrderExists(order.OrderId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
+                _orderRepository.UpdateOrder(order);
             }
-            ViewData["CustomerId"] = new SelectList(_context.Customers, "CustomerId", "CustomerId", order.CustomerId);
-            return View(order);
+            catch (DbUpdateConcurrencyException)
+            {
+                if(!OrderExists(order.OrderId))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            return RedirectToAction("Index");
         }
 
         // GET: Orders/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        public async Task<IActionResult> Delete(int id)
         {
-            if (id == null || _context.Orders == null)
+            if (id == null)
             {
                 return NotFound();
             }
-
-            var order = await _context.Orders
-                .Include(o => o.Customer)
-                .FirstOrDefaultAsync(m => m.OrderId == id);
+            var order = _orderRepository.GetOrderById(id);
             if (order == null)
             {
                 return NotFound();
             }
-
             return View(order);
         }
 
@@ -151,23 +130,14 @@ namespace Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            if (_context.Orders == null)
-            {
-                return Problem("Entity set 'SuperStoreContext.Orders'  is null.");
-            }
-            var order = await _context.Orders.FindAsync(id);
-            if (order != null)
-            {
-                _context.Orders.Remove(order);
-            }
-
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            var order = _orderRepository.GetOrderById(id);
+            _orderRepository.RemoveOrder(order);
+            return RedirectToAction("Index"); 
         }
 
         private bool OrderExists(int id)
         {
-            return (_context.Orders?.Any(e => e.OrderId == id)).GetValueOrDefault();
+            return _orderRepository.GetOrderById(id) != null;
         }
     }
 }
