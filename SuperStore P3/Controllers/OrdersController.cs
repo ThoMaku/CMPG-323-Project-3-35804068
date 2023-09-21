@@ -17,17 +17,20 @@ namespace Controllers
     {
         private readonly IOrderRepository _orderRepository;
         private readonly ICustomerRepository _customerRepository;
+        private readonly IProductRepository _productRepository; 
 
-        public OrdersController(IOrderRepository orderRepository,ICustomerRepository customerRepository)
+        public OrdersController(IOrderRepository orderRepository,ICustomerRepository customerRepository, IProductRepository productRepository)
         {
             _orderRepository = orderRepository;
             _customerRepository = customerRepository;
+            _productRepository = productRepository;
         }
 
         // GET: Orders
         public async Task<IActionResult> Index()
         {
             ViewData["CustomerId"] = new SelectList(_customerRepository.GetAllCustomers(), "CustomerId", "CustomerName");
+            ViewData["ProductId"] = new SelectList(_productRepository.GetAllProducts(), "ProductId", "ProductName");
             return View(_orderRepository.GetAllOrderrs().ToList());
         }
 
@@ -51,6 +54,7 @@ namespace Controllers
         public IActionResult Create()
         {
             ViewData["CustomerId"] = new SelectList(_customerRepository.GetAllCustomers(), "CustomerId", "CustomerName");
+            ViewData["ProductId"] = new SelectList(_productRepository.GetAllProducts(), "ProductId", "ProductName");
             return View();
         }
 
@@ -78,6 +82,7 @@ namespace Controllers
                 return NotFound();
             }
             ViewData["CustomerId"] = new SelectList(_customerRepository.GetAllCustomers(), "CustomerId", "CustomerName");
+            ViewData["ProductId"] = new SelectList(_productRepository.GetAllProducts(), "ProductId", "ProductName");
             return View(order);
         }
 
