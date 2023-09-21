@@ -6,10 +6,10 @@ namespace Models
 {
     public partial class Customer
     {
-        public Customer()
+        /*public Customer()
         {
             Orders = new HashSet<Order>();
-        }
+        }*/
 
         [DisplayName("Customer ID")]
         public int CustomerId { get; set; }
@@ -23,6 +23,6 @@ namespace Models
         public string? CellPhone { get; set; }
         [DisplayName("Orders")]
 
-        public virtual ICollection<Order> Orders { get; set; }
+       public virtual ICollection<Order> Orders { get; set; }
     }
 }

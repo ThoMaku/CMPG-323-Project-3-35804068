@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Models;
 using Data;
+using EcoPower_Logistics.Repository;
 
 namespace Controllers
 {
@@ -15,9 +16,11 @@ namespace Controllers
     public class OrdersController : Controller
     {
         private readonly SuperStoreContext _context;
+        private readonly CustomerRepository _customerRepository;
 
-        public OrdersController(SuperStoreContext context)
+        public OrdersController(CustomerRepository customerRepository, SuperStoreContext context)
         {
+            _customerRepository = customerRepository;
             _context = context;
         }
 
@@ -47,17 +50,17 @@ namespace Controllers
             return View(order);
         }
 
-        // GET: Orders/Create
-        public IActionResult Create()
+        /*// GET: Orders/Create
+        public IActionResult Create(Order order)
         {
-            ViewData["CustomerId"] = new SelectList(_context.Customers, "CustomerId", "CustomerId");
-            return View();
+            var customer = _customerRepository.GetByID(order.CustomerId);
+            return RedirectToAction(nameof(Index));
         }
 
         // POST: Orders/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
+        /*[HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("OrderId,OrderDate,CustomerId,DeliveryAddress")] Order order)
         {
@@ -69,7 +72,7 @@ namespace Controllers
             }
             ViewData["CustomerId"] = new SelectList(_context.Customers, "CustomerId", "CustomerId", order.CustomerId);
             return View(order);
-        }
+        }*/
 
         // GET: Orders/Edit/5
         public async Task<IActionResult> Edit(int? id)
